@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Menaxhues Detyrash sipas Prioritetit</title>
+  <style>
+    :root{
+      --blue:#2b6cb0;
+      --blue-600:#2c5282;
+      --red:#e53e3e;
+      --yellow:#d69e2e;
+      --green:#38a169;
+      --gray:#e2e8f0;
+      --text:#1a202c;
+      --muted:#718096;
+      --card:#ffffff;
+      --shadow:0 6px 20px rgba(0,0,0,.08);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      margin:0; padding:32px;
+      background:#f7fafc; color:var(--text);
+    }
+    .container{
+      max-width:760px; margin:0 auto; background:var(--card);
+      border-radius:var(--radius); box-shadow:var(--shadow); padding:28px;
+    }
+    h1{ font-size:26px; margin:0 0 18px }
+    h2{ font-size:22px; margin:24px 0 10px }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center }
+    .input{
+      flex:1 1 380px;
+      padding:12px 14px; border:1px solid var(--gray); border-radius:10px;
+      outline:none;
+    }
+    .btn{
+      border:0; cursor:pointer; padding:10px 14px; border-radius:10px;
+      font-weight:600; background:var(--blue); color:#fff;
+      transition:transform .03s ease, background .15s ease;
+    }
+    .btn:active{ transform:translateY(1px) }
+    .btn:focus{ outline:2px solid #cbd5e0; outline-offset:2px }
+    .btn.secondary{ background:#edf2f7; color:#2d3748 }
+    .btn.secondary.active{ background:#2d3748; color:#fff }
+    .btn.red{ background:var(--red); color:#fff }
+    .btn.yellow{ background:var(--yellow); color:#fff }
+    .btn.green{ background:var(--green); color:#fff }
+
+    .fieldset{
+      display:flex; gap:16px; align-items:center; color:var(--muted);
+      margin:8px 0 6px;
+    }
+    .fieldset label{ display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:var(--text) }
+
+    .filters{ display:flex; gap:8px; margin:12px 0 6px; flex-wrap:wrap }
+    .muted{ color:var(--muted) }
+
+    ul#lista{ list-style:none; padding:0; margin:8px 0 0 }
+    .item{
+      display:grid; grid-template-columns: 22px 1fr auto; gap:10px;
+      align-items:center; background:#fff; border:1px solid var(--gray);
+      border-radius:12px; padding:10px 12px; margin:8px 0;
+    }
+    .item .text{ font-weight:600 }
+    .item .remove{ padding:8px 10px; border:1px solid #cbd5e0; background:#fff; border-radius:8px; cursor:pointer }
+    .item .remove:hover{ background:#f7fafc }
+
+    .high .text{ color:var(--red) }
+    .medium .text{ color:var(--yellow) }
+    .low .text{ color:var(--green) }
+
+    .checkbox{ width:18px; height:18px; cursor:pointer }
+
+    .empty{
+      text-align:center; padding:24px; color:var(--muted);
+      border:1px dashed #e2e8f0; border-radius:12px; margin-top:10px;
+    }
+
+    @media (hover:hover){
+      .btn:hover{ background:var(--blue-600) }
+      .btn.red:hover{ filter:brightness(.95) }
+      .btn.yellow:hover{ filter:brightness(.95) }
+      .btn.green:hover{ filter:brightness(.95) }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Menaxhues Detyrash sipas Prioritetit</h1>
+
+    <div class="row" id="form">
+      <input id="taskInput" class="input" type="text" placeholder="Shkruaj detyrën..."/>
+      <button id="addBtn" class="btn">Shto detyrë</button>
+    </div>
+
+    <div class="fieldset" role="radiogroup" aria-label="Prioriteti">
+      <span class="muted">Prioriteti:</span>
+      <label><input type="radio" name="priority" value="high" checked/> I lartë</label>
+      <label><input type="radio" name="priority" value="medium"/> I mesëm</label>
+      <label><input type="radio" name="priority" value="low"/> I ulët</label>
+    </div>
+
+    <h2>Detyrat</h2>
+
+    <div class="filters" aria-label="Filtroni sipas prioritetit">
+      <span class="muted" style="align-self:center">Filtroni sipas prioritetit:</span>
+      <button class="btn secondary active" data-filter="all">Të gjitha</button>
+      <button class="btn red secondary" data-filter="high">I lartë</button>
+      <button class="btn yellow secondary" data-filter="medium">I mesëm</button>
+      <button class="btn green secondary" data-filter="low">I ulët</button>
+    </div>
+
+    <ul id="lista"></ul>
+    <div id="emptyState" class="empty">S'ka detyra për t'u shfaqur.</div>
+  </div>
+
+  <script>
+    // Elemente UI
+    const input = document.getElementById('taskInput');
+    const addBtn = document.getElementById('addBtn');
+    const listEl = document.getElementById('lista');
+    const emptyEl = document.getElementById('emptyState');
+    const filterButtons = Array.from(document.querySelectorAll('.filters .btn'));
+
+    // Gjendja
+    let tasks = loadFromStorage(); // nis bosh
+    let activeFilter = 'all';
+
+    // Init
+    render();
+
+    // Ngjarjet
+    addBtn.addEventListener('click', addTask);
+    input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') addTask(); });
+
+    filterButtons.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        filterButtons.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    // Funksionet kryesore
+    function addTask(){
+      const text = input.value.trim();
+      if(!text){ input.focus(); return; }
+      const priority = document.querySelector('input[name="priority"]:checked').value;
+
+      tasks.push({
+        id: crypto.randomUUID(),
+        text,
+        priority,
+        done: false
+      });
+
+      input.value='';
+      saveToStorage();
+      render();
+    }
+
+    function removeTask(id){
+      tasks = tasks.filter(t => t.id !== id);
+      saveToStorage();
+      render();
+    }
+
+    function toggleDone(id, checked){
+      const t = tasks.find(x=>x.id===id);
+      if(t){ t.done = checked; saveToStorage(); }
+    }
+
+    function render(){
+      listEl.innerHTML = '';
+
+      const subset = tasks.filter(t => activeFilter==='all' ? true : t.priority===activeFilter);
+
+      // Shfaq/FSHEH gjendjen bosh edhe kur filtri kthen 0
+      if(subset.length === 0){
+        emptyEl.hidden = false;
+      } else {
+        emptyEl.hidden = true;
+      }
+
+      for(const t of subset){
+        const li = document.createElement('li');
+        li.className = `item ${t.priority}`;
+
+        const cb = document.createElement('input');
+        cb.type='checkbox';
+        cb.className='checkbox';
+        cb.checked = t.done;
+        cb.addEventListener('change', e=>{
+          toggleDone(t.id, e.target.checked);
+          textSpan.style.textDecoration = e.target.checked ? 'line-through' : 'none';
+          textSpan.style.opacity = e.target.checked ? .6 : 1;
+        });
+
+        const textSpan = document.createElement('span');
+        textSpan.className = 'text';
+        textSpan.textContent = t.text;
+        if(t.done){ textSpan.style.textDecoration='line-through'; textSpan.style.opacity=.6; }
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove';
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', ()=> removeTask(t.id));
+
+        li.appendChild(cb);
+        li.appendChild(textSpan);
+        li.appendChild(removeBtn);
+        listEl.appendChild(li);
+      }
+    }
+
+    // LocalStorage
+    function saveToStorage(){
+      try{ localStorage.setItem('tasks_priority_demo', JSON.stringify(tasks)); }catch(e){}
+    }
+    function loadFromStorage(){
+      try{
+        const raw = localStorage.getItem('tasks_priority_demo');
+        // gjithmonë nis bosh; nëse ka mbetje nga testime të mëparshme, i ngarkon
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){ return []; }
+    }
+  </script>
+</body>
+</html>
