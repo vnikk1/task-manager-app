@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Menaxhues Detyrash sipas Prioritetit</title>
+  <title>Menaxhues detyrash </title>
   <style>
     :root{
       --blue:#2b6cb0;
@@ -90,50 +90,50 @@
 </head>
 <body>
   <div class="container">
-    <h1>Menaxhues Detyrash sipas Prioritetit</h1>
+    <h1>Menaxhues detyrash sipas prioritetit</h1>
 
     <div class="row" id="form">
       <input id="taskInput" class="input" type="text" placeholder="Shkruaj detyrën..."/>
-      <button id="addBtn" class="btn">Shto detyrë</button>
+      <button id="addBtn" class="btn">Shto detyre</button>
     </div>
 
     <div class="fieldset" role="radiogroup" aria-label="Prioriteti">
       <span class="muted">Prioriteti:</span>
-      <label><input type="radio" name="priority" value="high" checked/> I lartë</label>
-      <label><input type="radio" name="priority" value="medium"/> I mesëm</label>
-      <label><input type="radio" name="priority" value="low"/> I ulët</label>
+      <label><input type="radio" name="priority" value="high" checked/> I larte</label>
+      <label><input type="radio" name="priority" value="medium"/> I mesem</label>
+      <label><input type="radio" name="priority" value="low"/> I ulet</label>
     </div>
 
     <h2>Detyrat</h2>
 
     <div class="filters" aria-label="Filtroni sipas prioritetit">
       <span class="muted" style="align-self:center">Filtroni sipas prioritetit:</span>
-      <button class="btn secondary active" data-filter="all">Të gjitha</button>
-      <button class="btn red secondary" data-filter="high">I lartë</button>
-      <button class="btn yellow secondary" data-filter="medium">I mesëm</button>
-      <button class="btn green secondary" data-filter="low">I ulët</button>
+      <button class="btn secondary active" data-filter="all">Te gjitha</button>
+      <button class="btn red secondary" data-filter="high">I larte</button>
+      <button class="btn yellow secondary" data-filter="medium">I mesem</button>
+      <button class="btn green secondary" data-filter="low">I ulet</button>
     </div>
 
     <ul id="lista"></ul>
-    <div id="emptyState" class="empty">S'ka detyra për t'u shfaqur.</div>
+    <div id="emptyState" class="empty">S'ka detyra per t'u shfaqur.</div>
   </div>
 
   <script>
-    // Elemente UI
+    // elemente UI
     const input = document.getElementById('taskInput');
     const addBtn = document.getElementById('addBtn');
     const listEl = document.getElementById('lista');
     const emptyEl = document.getElementById('emptyState');
     const filterButtons = Array.from(document.querySelectorAll('.filters .btn'));
 
-    // Gjendja
+    // gjendja
     let tasks = loadFromStorage(); // nis bosh
     let activeFilter = 'all';
 
-    // Init
+    // init
     render();
 
-    // Ngjarjet
+    // ngjarjet
     addBtn.addEventListener('click', addTask);
     input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') addTask(); });
 
@@ -146,7 +146,7 @@
       });
     });
 
-    // Funksionet kryesore
+    // funksionet kryesore
     function addTask(){
       const text = input.value.trim();
       if(!text){ input.focus(); return; }
@@ -180,7 +180,7 @@
 
       const subset = tasks.filter(t => activeFilter==='all' ? true : t.priority===activeFilter);
 
-      // Shfaq/FSHEH gjendjen bosh edhe kur filtri kthen 0
+      // shfaq/fsheh gjendjen bosh edhe kur filtri kthen 0
       if(subset.length === 0){
         emptyEl.hidden = false;
       } else {
@@ -218,17 +218,18 @@
       }
     }
 
-    // LocalStorage
+    // localStorage
     function saveToStorage(){
       try{ localStorage.setItem('tasks_priority_demo', JSON.stringify(tasks)); }catch(e){}
     }
     function loadFromStorage(){
       try{
         const raw = localStorage.getItem('tasks_priority_demo');
-        // gjithmonë nis bosh; nëse ka mbetje nga testime të mëparshme, i ngarkon
+        // gjithmone nis bosh, nese ka mbetje nga testime te meparshme, i ngarkon
         return raw ? JSON.parse(raw) : [];
       }catch(e){ return []; }
     }
   </script>
 </body>
 </html>
+
